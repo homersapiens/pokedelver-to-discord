@@ -11,7 +11,6 @@ DELVER_URL = "https://api.delver.app/webhook/glaring-semisweet-envious-musket-de
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399489495321284658/m0Y1OCEUBLBYsdJJU7iyIhfnTEy8zxbmSGB9XJuZVgSHGFgLG0FgZ8dbxUH7WnRJyPaW"
 
 procesados = set()
-bucle_iniciado = False
 
 def enviar_a_discord(carta):
     contenido = {
@@ -61,17 +60,9 @@ def bucle_delver():
 
 @app.route("/", methods=["GET"])
 def index():
-    return "🟢 Servidor Flask activo", 200
+    return "🟢 Pokédelver to Discord activo", 200
 
-@app.route("/iniciar", methods=["GET"])
-def iniciar_bucle():
-    global bucle_iniciado
-    if not bucle_iniciado:
-        print("🟢 Lanzando hilo en segundo plano desde /iniciar...")
-        hilo = Thread(target=bucle_delver)
-        hilo.daemon = True
-        hilo.start()
-        bucle_iniciado = True
-        return "🟢 Hilo iniciado", 200
-    else:
-        return "⚠️ Ya estaba iniciado", 200
+# Lanzar el hilo automáticamente al arrancar la app
+hilo = Thread(target=bucle_delver)
+hilo.daemon = True
+hilo.start()
