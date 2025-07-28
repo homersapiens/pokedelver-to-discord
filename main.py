@@ -1,47 +1,40 @@
-from flask import Flask, request
-from flask_cors import CORS
+import time
 import requests
-import datetime
 
-app = Flask(__name__)
-CORS(app)
+# Tu URL privada de Delver Webhook Server
+DELVER_URL = "https://api.delver.app/webhook/glaring-semisweet-envious-musket-despite"
 
+# Webhook de Discord
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399489495321284658/m0Y1OCEUBLBYsdJJU7iyIhfnTEy8zxbmSGB9XJuZVgSHGFgLG0FgZ8dbxUH7WnRJyPaW"
 
-@app.route("/", methods=["POST"])
-def recibir_carta():
+# Almacena IDs ya procesados para evitar duplicados
+procesados = set()
+
+def enviar_a_discord(carta):
+    contenido = {
+        "embeds": [
+            {
+                "title": f"{carta['name']}",
+                "description": f"**Set:** {carta['expansion']} ({carta['expansion_abbr']})\n**Número:** {carta['number']}",
+                "image": {"url": carta["image_url"]}
+            }
+        ]
+    }
+    r = requests.post(DISCORD_WEBHOOK_URL, json=contenido)
+    print(f"✅ Enviada: {carta['name']} ({carta['number']}) - {r.status_code}")
+
+while True:
     try:
-        # Extraer datos del formulario
-        nombre = request.form.get("name", "SIN nombre")
-        numero = request.form.get("number", "SIN número")
-        expansion = request.form.get("expansion", "SIN expansión")
-        abbr = request.form.get("expansion_abbr", "")
-        imagen = request.form.get("image_url", "")
+        res = requests.get(DELVER_URL)
+        cartas = res.json()
 
-        hora = datetime.datetime.now().strftime("%H:%M:%S")
-
-        print("✅ Nombre:", nombre)
-        print("✅ Número:", numero)
-        print("✅ Set:", expansion)
-        print("✅ Imagen:", imagen)
-
-        contenido = {
-            "embeds": [
-                {
-                    "title": f"{nombre} - {hora}",
-                    "description": f"**Set:** {expansion} ({abbr})\n**Número:** {numero}",
-                    "image": {"url": imagen}
-                }
-            ]
-        }
-
-        r = requests.post(DISCORD_WEBHOOK_URL, json=contenido)
-        print("✅ Enviado a Discord:", r.status_code)
+        for carta in cartas:
+            unique_id = f"{carta['name']}-{carta['number']}"
+            if unique_id not in procesados:
+                enviar_a_discord(carta)
+                procesados.add(unique_id)
 
     except Exception as e:
-        print("❌ Error procesando:", e)
+        print("❌ Error:", e)
 
-    return {"ok": True}, 200
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    time.sleep(10)
