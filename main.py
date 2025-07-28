@@ -43,11 +43,16 @@ def bucle_delver():
 def index():
     return "🟢 Pokédelver to Discord activo", 200
 
-if __name__ == "__main__":
-    # Iniciar el hilo en segundo plano al arrancar Flask
+from flask import got_request_exception
+from threading import Thread
+
+def lanzar_bucle():
+    print("🟢 Lanzando bucle Delver en segundo plano...")
     hilo = Thread(target=bucle_delver)
     hilo.daemon = True
     hilo.start()
 
-    # Arrancar servidor Flask
-    app.run(host="0.0.0.0", port=8080)
+# Ejecutar el hilo cuando Flask reciba la primera petición
+@app.before_first_request
+def before_first_request():
+    lanzar_bucle()
