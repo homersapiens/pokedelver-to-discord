@@ -9,34 +9,38 @@ DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399390861346996346/Lz1I
 
 @app.route("/", methods=["POST"])
 def recibir_carta():
-    data = request.get_json(force=True)
-
-    print("📩 JSON recibido:")
-    print(data)
-
-    nombre = data.get("name", "Carta desconocida")
-    numero = data.get("number", "?")
-    imagen = data.get("image_url", "")
-    expansion = data.get("expansion", "Set desconocido")
-    expansion_abbr = data.get("expansion_abbr", "")
-
-    contenido = {
-        "embeds": [
-            {
-                "title": f"{nombre}",
-                "description": f"**Set:** {expansion} ({expansion_abbr})\n**Número:** {numero}",
-                "image": {"url": imagen}
-            }
-        ]
-    }
-
     try:
+        data = request.get_json(force=True)
+        print("📩 JSON recibido:", data)
+
+        # Acceso limpio a los campos
+        nombre = str(data["name"]) if "name" in data else "SIN nombre"
+        numero = str(data["number"]) if "number" in data else "SIN número"
+        imagen = str(data["image_url"]) if "image_url" in data else ""
+        expansion = str(data["expansion"]) if "expansion" in data else "SIN expansión"
+        abbr = str(data["expansion_abbr"]) if "expansion_abbr" in data else ""
+
+        print("🧪 Nombre:", nombre)
+        print("🧪 Número:", numero)
+        print("🧪 Imagen:", imagen)
+
+        contenido = {
+            "embeds": [
+                {
+                    "title": nombre,
+                    "description": f"Set: {expansion} ({abbr})\nNúmero: {numero}",
+                    "image": {"url": imagen}
+                }
+            ]
+        }
+
         r = requests.post(DISCORD_WEBHOOK_URL, json=contenido)
-        print("✅ Enviado a Discord:", r.status_code)
+        print("✅ Discord Status:", r.status_code)
+
     except Exception as e:
-        print("❌ Error al enviar a Discord:", e)
+        print("❌ Error procesando:", e)
 
     return {"ok": True}, 200
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.r
