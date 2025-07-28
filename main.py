@@ -43,3 +43,22 @@ def bucle_delver():
 
         except Exception as e:
             print("❌ Error en el bucle:", e)
+
+        time.sleep(10)
+
+@app.route("/", methods=["GET"])
+def index():
+    return "🟢 Servidor Flask activo", 200
+
+@app.route("/iniciar", methods=["GET"])
+def iniciar_bucle():
+    global bucle_iniciado
+    if not bucle_iniciado:
+        print("🟢 Lanzando hilo en segundo plano desde /iniciar...")
+        hilo = Thread(target=bucle_delver)
+        hilo.daemon = True
+        hilo.start()
+        bucle_iniciado = True
+        return "🟢 Hilo iniciado", 200
+    else:
+        return "⚠️ Ya estaba iniciado", 200
