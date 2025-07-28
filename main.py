@@ -1,11 +1,19 @@
+from flask import Flask, request
+from flask_cors import CORS
+import requests
+
+app = Flask(__name__)
+CORS(app)
+
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399390861346996346/Lz1IkbuiIMMAyMvbRIZDuVJzsQ0N9GdQtpA8tYJw58osxDhJWw5igdF6uD6WVHEZg9X1"
+
 @app.route("/", methods=["POST"])
 def recibir_carta():
     data = request.get_json(force=True)
-    
-    print("📩 JSON recibido:")
-    print(data)  # Mostramos en consola lo que realmente llega
 
-    # Intentamos acceder directamente a los campos
+    print("📩 JSON recibido:")
+    print(data)
+
     nombre = data.get("name", "Carta desconocida")
     numero = data.get("number", "?")
     imagen = data.get("image_url", "")
@@ -31,3 +39,6 @@ def recibir_carta():
         print("❌ Error al enviar a Discord:", e)
 
     return {"ok": True}, 200
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
