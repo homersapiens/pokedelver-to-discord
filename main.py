@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import requests
+import json
 import datetime
 
 app = Flask(__name__)
@@ -11,20 +12,32 @@ DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399489495321284658/m0Y1
 @app.route("/", methods=["POST"])
 def recibir_carta():
     try:
-        data = request.get_json(force=True)
-        print("📩 JSON recibido:", data)
+        # Detectar si viene como raw string
+        raw_data = request.data.decode("utf-8")
+        print("🟡 Cuerpo recibido bruto:", raw_data)
 
-        nombre = str(data["name"]) if "name" in data else "SIN nombre"
-        numero = str(data["number"]) if "number" in data else "SIN número"
-        imagen = str(data["image_url"]) if "image_url" in data else ""
-        expansion = str(data["expansion"]) if "expansion" in data else "SIN expansión"
-        abbr = str(data["expansion_abbr"]) if "expansion_abbr" in data else ""
+        try:
+            # Si viene como JSON puro
+            data = json.loads(raw_data)
+        except:
+            # Si viene en formato form-urlencoded como "payload={...}"
+            if raw_data.startswith("payload="):
+                payload_str = raw_data[8:]  # quitar "payload="
+                payload_str = payload_str.replace("+", " ")  # form decode
+                payload_str = requests.utils.unquote(payload_str)
+                data = json.loads(payload_str)
+            else:
+                data = {}
+
+        print("📩 JSON limpio:", data)
+
+        nombre = data.get("name", "SIN nombre")
+        numero = data.get("number", "SIN número")
+        imagen = data.get("image_url", "")
+        expansion = data.get("expansion", "SIN expansión")
+        abbr = data.get("expansion_abbr", "")
 
         hora = datetime.datetime.now().strftime("%H:%M:%S")
-
-        print("🧪 Nombre:", nombre)
-        print("🧪 Número:", numero)
-        print("🧪 Imagen:", imagen)
 
         contenido = {
             "embeds": [
@@ -37,12 +50,10 @@ def recibir_carta():
         }
 
         r = requests.post(DISCORD_WEBHOOK_URL, json=contenido)
-        print("✅ Discord Status:", r.status_code)
+        print("✅ Enviado a Discord:", r.status_code)
 
     except Exception as e:
-        print("❌ Error procesando:", e)
+        print("❌ Error general:", e)
 
     return {"ok": True}, 200
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
