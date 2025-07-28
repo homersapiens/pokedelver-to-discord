@@ -5,7 +5,6 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-# Tu webhook real de Discord
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399390861346996346/Lz1IkbuiIMMAyMvbRIZDuVJzsQ0N9GdQtpA8tYJw58osxDhJWw5igdF6uD6WVHEZg9X1"
 
 @app.route("/", methods=["POST"])
@@ -16,17 +15,15 @@ def recibir_carta():
     print(data)
 
     nombre = data.get("name", "Carta desconocida")
-    set_info = data.get("set") or {}
-    set_name = set_info.get("name", "Set desconocido")
-    number = data.get("collector_number", "?")
-    image_url = data.get("image_url") or data.get("images", {}).get("large", "")
+    numero = data.get("number", "?")
+    imagen = data.get("image_url", "")
 
     contenido = {
         "embeds": [
             {
                 "title": nombre,
-                "description": f"Set: {set_name}\nNúmero: {number}",
-                "image": {"url": image_url}
+                "description": f"Número: {numero}",
+                "image": {"url": imagen}
             }
         ]
     }
@@ -42,3 +39,4 @@ def recibir_carta():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
+
