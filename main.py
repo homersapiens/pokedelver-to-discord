@@ -17,16 +17,14 @@ def recibir_carta():
     nombre = data.get("name", "Carta desconocida")
     numero = data.get("number", "?")
     imagen = data.get("image_url", "")
-
-    print("🧪 Nombre:", nombre)
-    print("🧪 Número:", numero)
-    print("🧪 Imagen:", imagen)
+    expansion = data.get("expansion", "Set desconocido")
+    expansion_abbr = data.get("expansion_abbr", "")
 
     contenido = {
         "embeds": [
             {
-                "title": nombre,
-                "description": f"Número: {numero}",
+                "title": f"{nombre}",
+                "description": f"**Set:** {expansion} ({expansion_abbr})\n**Número:** {numero}",
                 "image": {"url": imagen}
             }
         ]
