@@ -1,13 +1,13 @@
-import time
+from flask import Flask
+from threading import Thread
 import requests
+import time
 
-# Tu URL privada de Delver Webhook Server
+app = Flask(__name__)
+
 DELVER_URL = "https://api.delver.app/webhook/glaring-semisweet-envious-musket-despite"
-
-# Webhook de Discord
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399489495321284658/m0Y1OCEUBLBYsdJJU7iyIhfnTEy8zxbmSGB9XJuZVgSHGFgLG0FgZ8dbxUH7WnRJyPaW"
 
-# Almacena IDs ya procesados para evitar duplicados
 procesados = set()
 
 def enviar_a_discord(carta):
@@ -23,18 +23,31 @@ def enviar_a_discord(carta):
     r = requests.post(DISCORD_WEBHOOK_URL, json=contenido)
     print(f"✅ Enviada: {carta['name']} ({carta['number']}) - {r.status_code}")
 
-while True:
-    try:
-        res = requests.get(DELVER_URL)
-        cartas = res.json()
+def bucle_delver():
+    while True:
+        try:
+            res = requests.get(DELVER_URL)
+            cartas = res.json()
 
-        for carta in cartas:
-            unique_id = f"{carta['name']}-{carta['number']}"
-            if unique_id not in procesados:
-                enviar_a_discord(carta)
-                procesados.add(unique_id)
+            for carta in cartas:
+                unique_id = f"{carta['name']}-{carta['number']}"
+                if unique_id not in procesados:
+                    enviar_a_discord(carta)
+                    procesados.add(unique_id)
+        except Exception as e:
+            print("❌ Error:", e)
 
-    except Exception as e:
-        print("❌ Error:", e)
+        time.sleep(10)
 
-    time.sleep(10)
+@app.route("/", methods=["GET"])
+def index():
+    return "🟢 Pokédelver to Discord activo", 200
+
+if __name__ == "__main__":
+    # Iniciar el hilo en segundo plano al arrancar Flask
+    hilo = Thread(target=bucle_delver)
+    hilo.daemon = True
+    hilo.start()
+
+    # Arrancar servidor Flask
+    app.run(host="0.0.0.0", port=8080)
