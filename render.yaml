@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pokedelver-to-discord
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn main:app
+    envVars:
+      - key: DISCORD_WEBHOOK_URL
+        sync: false
