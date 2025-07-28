@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+DISCORD_WEBHOOK_URL = os.environ.get("https://discord.com/api/webhooks/1399390861346996346/Lz1IkbuiIMMAyMvbRIZDuVJzsQ0N9GdQtpA8tYJw58osxDhJWw5igdF6uD6WVHEZg9X1")
 
 @app.route("/", methods=["POST"])
 def recibir_carta():
